@@ -9,7 +9,7 @@
   "states": {
     "idle": { "frames": ["idle.jpg"] },
     "walk": {
-      "frames": ["walkA.jpg", "walkB.jpg", "walkC.jpg", "walkB.jpg"],
+      "frames": ["walkC.jpg", "walkD.jpg", "walkE.jpg", "walkB.jpg", "walkA.jpg"],
       "anim": {
         "interval": [0.1, 0.13],
         "refSpeed": 46,
