@@ -776,12 +776,16 @@
     const pose = computePose()
     if (spriteSkin) {
       try {
+        // 顶边踱步(perch/walk 子模式)复用 walk 素材与步态引擎:
+        // FSM 仍是 perch,只把皮肤层状态映射成 walk,让四帧循环/颠簸/溶解全部生效
+        const perchWalk = st === 'perch' && perchMode === 'walk'
         spriteSkin.draw(pose, t, {
-          state: st,
-          stateT: stT,
+          state: perchWalk ? 'walk' : st,
+          stateT: perchWalk ? perchT : stT,
           dt,
           squashT,
           air: clamp((layout.groundY - py) / 500, 0, 1),
+          speed: st === 'walk' ? (surface ? 40 : 46) : perchWalk ? 40 : 0, // 供步态引擎做速度同步
         })
       } catch (e) {
         // 皮肤异常时回退程序化猫,保证循环不断

@@ -84,7 +84,7 @@
     // 并可按移动速度相对 refSpeed 缩放。颠簸/摇摆/压扁全部是 φ 的连续函数,
     // 且在换帧点(φ=0)取极值 0 → 换帧瞬间变换量连续,视觉无跳变。
     const DEF_ANIM = {
-      interval: [0.14, 0.22], // 每步时长随机范围(秒)
+      interval: [0.14, 0.22], // 每次帧前进的时长随机范围(秒);帧数翻倍时减半,步频才不变
       refSpeed: 46, // 参考移速(px/s),速度同步的基准
       bobAmp: 3, // 颠簸幅度(px)
       swayAmp: 0.02, // 摇摆幅度(rad)
@@ -104,14 +104,12 @@
     let gaitState = '' // 步态归属状态(仅该状态用 gait 取帧)
     let snap = null // 状态边界溶解快照 { bodies, t, dur }
     let lastBody = null
+    let lastGait = null // 最近一次步态变换快照(测试/devtools 观测)
 
-    function gaitReset(a) {
+    function gaitReset(a, owner) {
       const [lo, hi] = a.interval
       gait = { phi: 0, idx: 0, age: 0, stepDur: Math.max(0.05, lo + Math.random() * (hi - lo)) }
-      gaitState = prevState === 'walk' ? 'walk' : state0()
-    }
-    function state0() {
-      return prevState
+      gaitState = owner || ''
     }
     function gaitAdvance(a, dt, speed, n) {
       // 速度同步:移速快 → 步频快(stepDur × refSpeed/speed,夹在 0.6–1.8 倍)
@@ -124,9 +122,13 @@
         gait.stepDur = Math.max(0.05, (lo + Math.random() * (hi - lo)) * k)
       }
     }
-    // 步相位 ph=π/步:|sin| 在换帧点归零 → bob/squash 换帧连续;sway 用带相位差的正弦,全程连续
-    function gaitTransform(a, env) {
-      const ph = (gait.idx + gait.phi) * Math.PI
+    // 步相位 ph:以整个循环(n 帧 = 一个完整步态周期)为 2π,身体每周期颠簸 2 次
+    // (对角腿组各一次,与真实猫步频一致,不随帧数翻倍)。
+    // 偶数 n 时 lift=|sin| 恰在着地帧(0、n/2)归零、在过渡帧(n/4、3n/4)取峰值;
+    // bob/sway/squash 都是 (idx+phi) 的连续函数 → 任意换帧点变换量不跳。
+    // n=2 时公式退化为 (idx+phi)·π,与两帧版完全一致。
+    function gaitTransform(a, env, n) {
+      const ph = ((gait.idx + gait.phi) * Math.PI * 2) / Math.max(2, n | 0)
       const lift = Math.abs(Math.sin(ph))
       return {
         bob: -lift * a.bobAmp * env,
@@ -139,8 +141,10 @@
 
     function stateImg(state) {
       const def = states[state] || idle
-      // 配置了步态动画的状态:取当前步帧(与 walk 渲染同源),避免墙上时钟与步相位打架
-      if (def.anim && def.imgs.length > 1 && gait) return def.imgs[gait.idx % def.imgs.length]
+      // 配置了步态动画且步态归属本状态:取当前步帧(与 walk 渲染同源)
+      if (def.anim && def.imgs.length > 1 && gait && gaitState === state) {
+        return def.imgs[gait.idx % def.imgs.length]
+      }
       const clock = stateClock[state] || 0
       const f = def.fps || fps
       return def.imgs[Math.floor(clock * f) % def.imgs.length]
@@ -167,6 +171,10 @@
         expr = { name, def, t: 0 }
         return true
       },
+      // 步态观测:最近一帧的相位/步时长/变换量(单测与 devtools 调参用)
+      gaitInfo() {
+        return lastGait
+      },
       draw(p, now, info) {
         const dt = info.dt || 0.016
         t = now
@@ -174,7 +182,8 @@
         const a = animOf(state)
         const walkDef = states.walk
         const walkActive = state === 'walk' && !expr && !!a && !!walkDef && walkDef.imgs.length > 1
-        if (state !== prevState) {
+        const stateChanged = state !== prevState
+        if (stateChanged) {
           stateClock[state] = 0
           if (expr && !expr.def.once) expr = null // 循环表情随状态切换结束
           // 状态边界:把上一状态的最后一帧做交叉溶解快照,消除姿态/位置突跳
@@ -182,7 +191,7 @@
             const xf = (a || DEF_ANIM).stateXfade
             if (xf > 0) snap = { bodies: lastBody, t: 0, dur: xf }
           }
-          if (state === 'walk' && a) gaitReset(a) // 起步相位归零,步态从头开始
+          if (state === 'walk' && a) gaitReset(a, state) // 起步相位归零,步态从头开始
         }
         prevState = state
         stateClock[state] = (stateClock[state] || 0) + dt
@@ -206,7 +215,7 @@
         if (!img) img = stateImg(state)
 
         // 摸头瞬间撒爱心
-        if (state === 'pet' && prevState !== 'pet') {
+        if (state === 'pet' && stateChanged) {
           for (let i = 0; i < 3; i++) {
             hearts.push({
               x: CX + (Math.random() * 2 - 1) * 46,
@@ -222,7 +231,30 @@
         sy *= 1 - 0.14 * sq
         sx *= 1 + 0.1 * sq
         sy *= 1 + Math.sin(t * 2.3) * 0.008 // 呼吸
-        if (state === 'walk') {
+
+        let bodies = null // [{img,bob,rot,sx,sy,face,alpha}] 多层本体
+        if (walkActive) {
+          const env = smooth01(Math.min(1, gait.age / Math.max(0.001, a.entryT)))
+          gait.age += dt
+          gaitAdvance(a, dt, Math.abs(info.speed || 0), walkDef.imgs.length)
+          const g = gaitTransform(a, env, walkDef.imgs.length)
+          lastGait = { phi: gait.phi, idx: gait.idx, n: walkDef.imgs.length, stepDur: gait.stepDur, bob: g.bob, sway: g.sway, sy: g.sy, env }
+          bob += g.bob
+          rot += g.sway
+          sy *= g.sy
+          sx *= g.sx
+          // 步内交叉溶解:临近换帧点把下一帧淡入,消除两帧硬切
+          const n = walkDef.imgs.length
+          const i0 = gait.idx % n
+          const i1 = (gait.idx + 1) % n
+          const m = Math.max(0, Math.min(0.5, a.crossfade * 0.5))
+          const wgt = m > 0 && gait.phi > 1 - m ? (gait.phi - (1 - m)) / m : 0
+          bodies = [{ img: walkDef.imgs[i0], bob, rot, sx, sy, face: p.face, alpha: 1 }]
+          if (wgt > 0 && i1 !== i0) {
+            bodies.push({ img: walkDef.imgs[i1], bob, rot, sx, sy, face: p.face, alpha: smooth01(wgt) })
+          }
+        } else if (state === 'walk') {
+          // 旧皮肤(无 anim 配置):保留原墙上时钟颠簸/摇摆
           bob = -Math.abs(Math.sin(t * 8)) * 3
           rot += Math.sin(t * 8) * 0.02
         } else if (state === 'tap' || state === 'groom') {
@@ -235,23 +267,26 @@
         } else if (state === 'drag') {
           rot += Math.sin(t * 10) * 0.03
         }
+        if (!bodies) bodies = [{ img, bob, rot, sx, sy, face: p.face, alpha: 1 }]
 
-        // 接地阴影
+        // 接地阴影(随 bob/squash 连续变化,换帧点不跳)
         const air = info.air || 0
         ctx.fillStyle = `rgba(0,0,0,${0.16 * (1 - 0.6 * air)})`
         ctx.beginPath()
         ctx.ellipse(CX, GROUND + 2, 62 * (1 - 0.5 * air) * sx, 9 * (1 - 0.4 * air), 0, 0, Math.PI * 2)
         ctx.fill()
 
-        // 本体(底部中心对齐地面)
-        const w = img.naturalWidth * scale
-        const h = img.naturalHeight * scale
-        ctx.save()
-        ctx.translate(CX, GROUND + bob)
-        ctx.rotate(rot)
-        ctx.scale(p.face * sx, sy)
-        ctx.drawImage(img, -w / 2, -h, w, h)
-        ctx.restore()
+        // 状态边界交叉溶解:先画上一状态最后一帧(淡出),再画当前帧,消除姿态突跳
+        if (snap) {
+          snap.t += dt
+          const k = snap.t / snap.dur
+          if (k >= 1) snap = null
+          else {
+            for (const b of snap.bodies) drawBody(b.img, b.bob, b.rot, b.sx, b.sy, b.face, 1 - smooth01(k))
+          }
+        }
+        for (const b of bodies) drawBody(b.img, b.bob, b.rot, b.sx, b.sy, b.face, b.alpha)
+        lastBody = bodies
 
         // 睡觉 zzz
         if (state === 'sleep') {
