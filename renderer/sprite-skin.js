@@ -90,7 +90,7 @@
       swayAmp: 0.02, // 摇摆幅度(rad)
       swayPhase: Math.PI / 2, // 摇摆相对步相位的相位差
       squashAmp: 0.012, // 落地压扁幅度
-      crossfade: 0.3, // 步内两帧交叉溶解占比(0=硬切)
+      crossfade: 0.3, // 溶解强度:混合窗=步尾 crossfade×0.5(0=硬切,1=后半步溶解,2=全程连续 morph)
       entryT: 0.25, // 进入 walk 时幅度渐入时长
       exitT: 0.18, // (预留)退出渐出,当前由 stateXfade 承担
       stateXfade: 0.12, // 状态边界交叉溶解时长(消除姿态突跳)
@@ -247,7 +247,7 @@
           const n = walkDef.imgs.length
           const i0 = gait.idx % n
           const i1 = (gait.idx + 1) % n
-          const m = Math.max(0, Math.min(0.5, a.crossfade * 0.5))
+          const m = Math.max(0, Math.min(1, a.crossfade * 0.5))
           const wgt = m > 0 && gait.phi > 1 - m ? (gait.phi - (1 - m)) / m : 0
           bodies = [{ img: walkDef.imgs[i0], bob, rot, sx, sy, face: p.face, alpha: 1 }]
           if (wgt > 0 && i1 !== i0) {

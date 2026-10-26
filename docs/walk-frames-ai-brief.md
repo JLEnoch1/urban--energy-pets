@@ -185,3 +185,59 @@ F3 左前爪抬起(重心右)  →  F4 过渡帧(F2 镜像)  →  回到 F1
 - 已知残留：四帧最低点仍是尾尖（与 idle/旧帧同族特性，全组一致故锚点稳定；脚线高于包围盒底 61–66px）。
 - 已同步部署至运行目录 `~/Library/Application Support/DesktopPet/skins/default/`（watchSkins 热重载）。
 
+---
+
+## 9. 增补（2026-10-26 下午）：溶解调优 + 根治「四肢不协调」
+
+### 9.1 引擎/参数调优（已上线）
+
+- `sprite-skin.js`：溶解窗上限 0.5 → 1，即 `crossfade=2` 时**全步长连续变形**（任意时刻都在两帧间
+  平滑插值，彻底消除「静止→突变」的切换感；`crossfade≤1` 的行为与旧版完全一致，单测不变）。
+- `skin.json walk.anim`：`crossfade 2.0`（全程 morph）、`interval [0.10,0.13]`（节奏放缓、抖动从 ±22% 降到 ±13%）、
+  `bobAmp 3.5`。
+- 调参口诀：**残影/双爪太强 → crossfade 降到 1.0~1.4**；仍觉切换生硬 → 保持 2.0 并放慢 interval。
+
+### 9.2 素材缺陷是「四肢不协调」的根因
+
+已上线三帧 walkA/B/C **全部是「右前爪抬起」家族**：整个循环左前爪几乎不动、无左右交替负重，
+任何溶解/相位数学都无法把不协调的肢体姿态混成真实步态（混合只会产生「双爪残影」）。
+根治 = 补 2 张帧，凑成真 4 拍交替循环：**[walkC(右抬) → F2(过渡) → F3(左抬) → F2(过渡)]**。
+
+生成方式：**逐帧单独生成**（不要 2×2 宫格，上次宫格提示词的肢体规格被忽略了），
+以 `walkC.jpg` 作图生图/风格参考（已验证生成器能 1:1 复刻它，IoU 0.995）。
+
+**F2 过渡帧（passing pose）**
+- 中：同一只奶油色 Q 版小猫，正面，行走循环的过渡瞬间：四肢收拢于身体正下方，双前爪并排轻触地面，
+  后腿收于腹下，**身体为全循环最高点（比参考图略高约 2%）**；尾巴仍垂在**右侧**、尾尖不低于脚掌；
+  纯白背景，1280×1280，主体居中占 70%，与参考图同比例、同地平线、同色板、同描边粗细。
+- EN: same chibi cream kitten, front view, passing pose: all four paws gathered under the body,
+  both front paws lightly touching ground side by side, hind legs tucked, body at the TALLEST point
+  of the cycle (~2% taller than reference), tail hanging on the RIGHT side, tip no lower than the feet,
+  closed warm-brown outline, plain white background, 1280x1280, same scale/ground line as reference.
+- 负向：tail on left side, mirrored image, extra limbs, both front paws raised in the air, crouching body,
+  ground shadow, decorations, different character.
+
+**F3 左前爪抬起帧（mirror limb, NOT mirrored image）**
+- 中：同一只小猫，正面，**左前爪**抬至胸前露出粉色肉垫，**右前爪**踩地承重——肢体布局与参考图镜像，
+  **但整图不镜像**：尾巴仍垂在右侧，头部斑纹/眼睛/鼻子/身体斑块保持同一只猫的连续性；
+  后腿自然收拢；纯白背景，1280×1280，与参考图同比例、同地平线。
+- EN: same chibi cream kitten, front view, LEFT front paw lifted to chest showing the pink pad,
+  RIGHT front paw planted bearing weight — limb arrangement mirrored vs reference, but the image
+  itself NOT flipped: tail still on the RIGHT, identical patch/eye/nose continuity, closed outline,
+  plain white background, 1280x1280, same scale and ground line as reference.
+- 负向：whole-image mirror flip, tail on left, right paw lifted, both paws lifted, height mismatch.
+
+**验收（同 §6/§8）**：裁切高与 walkC 差 ≤1%；单一连通域；尾巴在右侧；爪垫/描边色板一致；
+与 walkC 的 IoU 0.75–0.90（太像=没抬爪，太不像=换了只猫）。
+
+**接入**：新图命名 `walkF2.jpg`/`walkF3.jpg` 放入 `skins/default/`，
+`walk.frames` 改为 `["walkC.jpg","walkF2.jpg","walkF3.jpg","walkF2.jpg"]`（n=4：颠簸波谷自动落在
+两张负重帧 C/F3，波峰落在过渡帧 F2），anim 其余参数不动。
+
+### 9.3 不想再生成时的两个降级档
+
+1. `frames: ["walkA.jpg","walkC.jpg"]` —— 两帧近同姿态（IoU 0.871），混合几乎零残影，
+   动感全靠程序化颠簸/摇摆：最干净，但读作「原地小跑」。
+2. 保留 `[A,B,C,B]` + `crossfade: 1.0`（半程溶解）—— 折中：切换感略回、残影减半。
+
+
