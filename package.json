@@ -1,0 +1,93 @@
+{
+  "name": "desktop-pet",
+  "productName": "DesktopPet",
+  "version": "0.1.0",
+  "private": true,
+  "author": "DesktopPet",
+  "description": "桌面猫:透明置顶窗口 + 行为 FSM + 可换皮肤的桌面宠物",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node test/cell-split.test.js && node test/sprite-skin.test.js && node test/ledges.test.js",
+    "icon": "swift scripts/make-icon.swift build",
+    "helper": "bash scripts/build-helper.sh",
+    "prebuild:mac": "npm run helper",
+    "build:mac": "electron-builder --mac --universal",
+    "build:win": "electron-builder --win --x64",
+    "release": "bash scripts/release.sh",
+    "site:sync": "node scripts/sync-downloads.mjs",
+    "site:dev": "node scripts/serve-site.mjs"
+  },
+  "devDependencies": {
+    "electron": "^44.9.1",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "com.desktoppet.app",
+    "productName": "DesktopPet",
+    "asar": false,
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "skins/**/*",
+      "!skins/**/.cache/**",
+      "!**/*.map"
+    ],
+    "mac": {
+      "extraResources": [
+        {
+          "from": "native/keytap",
+          "to": "native/keytap"
+        },
+        {
+          "from": "native/winlist",
+          "to": "native/winlist"
+        }
+      ],
+      "category": "public.app-category.entertainment",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["universal"]
+        }
+      ],
+      "artifactName": "DesktopPet-macOS-${version}-universal.${ext}",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "extendInfo": {
+        "LSUIElement": true
+      }
+    },
+    "dmg": {
+      "title": "DesktopPet ${version}",
+      "window": { "width": 540, "height": 380 },
+      "contents": [
+        { "x": 148, "y": 190, "type": "file" },
+        { "x": 392, "y": 190, "type": "link", "path": "/Applications" }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "extraResources": [],
+      "artifactName": "DesktopPet-Windows-${version}-x64.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "runAfterFinish": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "DesktopPet",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}

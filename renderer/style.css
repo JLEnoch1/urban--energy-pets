@@ -1,0 +1,35 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#stage {
+  display: block;
+}
+
+#bubble {
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  transform: translateX(-50%) scale(0.9);
+  background: #fff;
+  border: 2.5px solid #20242a;
+  border-radius: 14px;
+  padding: 4px 12px;
+  font: 600 14px/1.5 ui-rounded, 'PingFang SC', system-ui, sans-serif;
+  color: #20242a;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+#bubble.show {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}

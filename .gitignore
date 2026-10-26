@@ -1,0 +1,7 @@
+node_modules/
+dist/
+site/downloads/*.dmg
+site/downloads/*.exe
+skins/**/.cache/
+.DS_Store
+.workbuddy/

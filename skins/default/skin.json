@@ -1,0 +1,40 @@
+{
+  "version": 2,
+  "name": "奶油猫 · 插画",
+  "fps": 8,
+  "sheets": {
+    "88e22dcf458a68076efbd9698839e34b.jpg": {},
+    "767fb4cd02c59e256bb17fdceb2aa1bb.jpg": {}
+  },
+  "states": {
+    "idle": { "frames": ["idle.jpg"] },
+    "walk": {
+      "frames": ["walk1.jpg", "walk2.jpg"],
+      "anim": {
+        "interval": [0.14, 0.22],
+        "refSpeed": 46,
+        "bobAmp": 3,
+        "swayAmp": 0.02,
+        "swayPhase": 1.57,
+        "squashAmp": 0.012,
+        "crossfade": 0.3,
+        "entryT": 0.25,
+        "exitT": 0.18,
+        "stateXfade": 0.12
+      }
+    },
+    "walkSide": { "sheet": "88e22dcf458a68076efbd9698839e34b.jpg", "cells": [2, 3, 4], "fps": 6 },
+    "walkFront": { "sheet": "88e22dcf458a68076efbd9698839e34b.jpg", "cells": [0, 1], "fps": 4 },
+    "sleep": { "frames": ["sleep.jpg"] },
+    "drag": { "frames": ["drag.jpg"] },
+    "thrown": { "frames": ["drag.jpg"] },
+    "pet": { "frames": ["pet.jpg"] },
+    "groom": { "frames": ["tap.jpg"] },
+    "tap": { "frames": ["tap.jpg"] }
+  },
+  "expressions": {
+    "happy": { "frames": ["pet.jpg"], "once": true, "fps": 6, "hold": 0.6 },
+    "surprise": { "frames": ["drag.jpg"], "once": true, "fps": 8, "hold": 0.35 },
+    "tap": { "frames": ["tap.jpg"], "once": true, "fps": 8, "hold": 0.12 }
+  }
+}
