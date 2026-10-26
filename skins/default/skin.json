@@ -7,34 +7,126 @@
     "767fb4cd02c59e256bb17fdceb2aa1bb.jpg": {}
   },
   "states": {
-    "idle": { "frames": ["idle.jpg"] },
+    "idle": {
+      "frames": [
+        "idle.jpg"
+      ]
+    },
     "walk": {
-      "frames": ["walkC.jpg", "walkD.jpg", "walkE.jpg", "walkB.jpg", "walkA.jpg"],
+      "frames": [
+        "walkV01.png",
+        "walkV02.png",
+        "walkV03.png",
+        "walkV04.png",
+        "walkV05.png",
+        "walkV06.png",
+        "walkV07.png",
+        "walkV08.png",
+        "walkV09.png",
+        "walkV10.png",
+        "walkV11.png",
+        "walkV12.png",
+        "walkV13.png",
+        "walkV14.png",
+        "walkV15.png",
+        "walkV16.png",
+        "walkV17.png",
+        "walkV18.png",
+        "walkV19.png",
+        "walkV20.png",
+        "walkV21.png",
+        "walkV22.png",
+        "walkV23.png",
+        "walkV24.png"
+      ],
       "anim": {
-        "interval": [0.1, 0.13],
+        "interval": [
+          0.0417,
+          0.0417
+        ],
         "refSpeed": 46,
-        "bobAmp": 3.5,
-        "swayAmp": 0.02,
+        "bobAmp": 0,
+        "swayAmp": 0,
         "swayPhase": 1.57,
-        "squashAmp": 0.012,
-        "crossfade": 2.0,
+        "squashAmp": 0,
+        "crossfade": 0.2,
         "entryT": 0.25,
         "exitT": 0.18,
         "stateXfade": 0.12
       }
     },
-    "walkSide": { "sheet": "88e22dcf458a68076efbd9698839e34b.jpg", "cells": [2, 3, 4], "fps": 6 },
-    "walkFront": { "sheet": "88e22dcf458a68076efbd9698839e34b.jpg", "cells": [0, 1], "fps": 4 },
-    "sleep": { "frames": ["sleep.jpg"] },
-    "drag": { "frames": ["drag.jpg"] },
-    "thrown": { "frames": ["drag.jpg"] },
-    "pet": { "frames": ["pet.jpg"] },
-    "groom": { "frames": ["tap.jpg"] },
-    "tap": { "frames": ["tap.jpg"] }
+    "walkSide": {
+      "sheet": "88e22dcf458a68076efbd9698839e34b.jpg",
+      "cells": [
+        2,
+        3,
+        4
+      ],
+      "fps": 6
+    },
+    "walkFront": {
+      "sheet": "88e22dcf458a68076efbd9698839e34b.jpg",
+      "cells": [
+        0,
+        1
+      ],
+      "fps": 4
+    },
+    "sleep": {
+      "frames": [
+        "sleep.jpg"
+      ]
+    },
+    "drag": {
+      "frames": [
+        "drag.jpg"
+      ]
+    },
+    "thrown": {
+      "frames": [
+        "drag.jpg"
+      ]
+    },
+    "pet": {
+      "frames": [
+        "pet.jpg"
+      ]
+    },
+    "groom": {
+      "frames": [
+        "tap.jpg"
+      ]
+    },
+    "tap": {
+      "frames": [
+        "tap.jpg"
+      ]
+    }
   },
   "expressions": {
-    "happy": { "frames": ["pet.jpg"], "once": true, "fps": 6, "hold": 0.6 },
-    "surprise": { "frames": ["drag.jpg"], "once": true, "fps": 8, "hold": 0.35 },
-    "tap": { "frames": ["tap.jpg"], "once": true, "fps": 8, "hold": 0.12 }
+    "happy": {
+      "frames": [
+        "pet.jpg"
+      ],
+      "once": true,
+      "fps": 6,
+      "hold": 0.6
+    },
+    "surprise": {
+      "frames": [
+        "drag.jpg"
+      ],
+      "once": true,
+      "fps": 8,
+      "hold": 0.35
+    },
+    "tap": {
+      "frames": [
+        "tap.jpg"
+      ],
+      "once": true,
+      "fps": 8,
+      "hold": 0.12
+    }
   }
 }
