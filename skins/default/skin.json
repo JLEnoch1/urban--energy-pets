@@ -9,15 +9,15 @@
   "states": {
     "idle": { "frames": ["idle.jpg"] },
     "walk": {
-      "frames": ["walk1.jpg", "walk2.jpg"],
+      "frames": ["walkA.jpg", "walkB.jpg", "walkC.jpg", "walkB.jpg"],
       "anim": {
-        "interval": [0.14, 0.22],
+        "interval": [0.07, 0.11],
         "refSpeed": 46,
         "bobAmp": 3,
         "swayAmp": 0.02,
         "swayPhase": 1.57,
         "squashAmp": 0.012,
-        "crossfade": 0.3,
+        "crossfade": 0.35,
         "entryT": 0.25,
         "exitT": 0.18,
         "stateXfade": 0.12
